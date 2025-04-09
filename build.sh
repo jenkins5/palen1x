@@ -4,6 +4,8 @@
 # Made with <3 https://github.com/palera1n/palen1x
 # Modified from https://github.com/asineth0/checkn1x & https://github.com/raspberryenvoie/odysseyn1x :3
 
+set -e
+# set -x
 
 [ "$(id -u)" -ne 0 ] && {
     echo 'Please run as root'
@@ -19,24 +21,33 @@ while [ -z "$VERSION" ]; do
     read -r VERSION
 done
 
+if [ -z "$PALERA1N_VERSION" ]; then
+    download_version=$(curl -s https://api.github.com/repos/palera1n/palera1n/releases | grep -m 1 -o '"tag_name": "[^"]*' | sed 's/"tag_name": "//')
+    printf "Palera1n Version (default: $download_version) : "
+    read -r PALERA1N_VERSION
+    if [ ! -z "$PALERA1N_VERSION" ]; then
+        download_version=$PALERA1N_VERSION
+    fi
+else
+    download_version=$PALERA1N_VERSION
+fi
+
 until [ "$ARCH" = 'x86_64' ] || [ "$ARCH" = 'x86' ] || [ "$ARCH" = 'aarch64' ] || [ "$ARCH" = 'armv7' ]; do
     echo '1 x86_64'
     echo '2 x86'
     echo '3 aarch64'
     echo '4 armv7'
-    printf 'Which architecture? x86_64 (default), x86, or aarch64 or armv7: '
+    printf "Which architecture? (default: $(arch)) : "
     read -r input_arch
     [ "$input_arch" = 1 ] && ARCH='x86_64'
     [ "$input_arch" = 2 ] && ARCH='x86'
     [ "$input_arch" = 3 ] && ARCH='aarch64'
     [ "$input_arch" = 4 ] && ARCH='armv7'
-    [ -z "$input_arch" ] && ARCH='x86_64'
+    [ -z "$input_arch" ] && ARCH=$(arch)
 done
 
-apt-get update
+apt-get update || true
 apt-get install -y --no-install-recommends wget gawk debootstrap mtools xorriso ca-certificates curl libusb-1.0-0-dev gcc make gzip xz-utils unzip libc6-dev
-
-download_version=$(curl -s https://api.github.com/repos/palera1n/palera1n/releases | grep -m 1 -o '"tag_name": "[^"]*' | sed 's/"tag_name": "//')
 
 PALERA1N_PREFIX="https://github.com/palera1n/palera1n/releases/download/$download_version/palera1n-linux-"
 USBMUXD_PREFIX="https://cdn.nickchan.lol/palera1n/artifacts/usbmuxd-static/usbmuxd-linux-"
@@ -72,13 +83,17 @@ echo $USBMUXD
 echo $ROOTFS
 
 # Clean
-umount -v work/rootfs/{dev,sys,proc} >/dev/null 2>&1
+for n in {dev,sys,proc}; do
+    if [ -d work/rootfs/$n ] && [ "$(ls -A work/rootfs/$n)" ]; then
+        umount -v work/rootfs/$n
+    fi
+done
 rm -rf work
 mkdir -pv work/{rootfs,iso/boot/grub}
 cd work
 
 # 
-curl -sL "$ROOTFS" | tar -xzC rootfs
+curl --fail -sL "$ROOTFS" | tar -xzC rootfs
 mount -vo bind /dev rootfs/dev
 mount -vt sysfs sysfs rootfs/sys
 mount -vt proc proc rootfs/proc
@@ -99,9 +114,9 @@ apk add bash alpine-base ncurses udev openssh-client sshpass newt
 apk add --no-scripts linux-lts linux-firmware-none
 rc-update add bootmisc
 rc-update add hwdrivers
-rc-update add udev
-rc-update add udev-trigger
-rc-update add udev-settle
+# rc-update add udev
+# rc-update add udev-trigger
+# rc-update add udev-settle
 !
 
 # kernel modules
@@ -128,22 +143,26 @@ echo 'palen1x' > rootfs/etc/hostname
 echo "PATH=$PATH:$HOME/.local/bin" > rootfs/root/.bashrc # d
 echo "export PALEN1X_VERSION='$VERSION'" > rootfs/root/.bashrc
 echo '/usr/bin/palen1x_menu' >> rootfs/root/.bashrc
-echo "Rootless" > rootfs/usr/bin/.jbtype
-echo "-l" > rootfs/usr/bin/.args
+echo "RootHide" > rootfs/usr/bin/.jbtype
+echo "-l -k /roothide/Pongo.bin -K /roothide/checkra1n-kpf-pongo -o /roothide/palehide.tc" > rootfs/usr/bin/.args
 
 # Unmount fs
 umount -v rootfs/{dev,sys,proc}
 
+# roothide files
+cp -avr ../roothide rootfs/
+chmod -R +x rootfs/roothide
+
 #
-curl -Lo rootfs/usr/bin/palera1n "$PALERA1N"
+curl --fail -Lo rootfs/usr/bin/palera1n "$PALERA1N"
 chmod +x rootfs/usr/bin/palera1n
 
-curl -Lo rootfs/usr/sbin/usbmuxd "$USBMUXD"
+curl --fail -Lo rootfs/usr/sbin/usbmuxd "$USBMUXD"
 chmod +x rootfs/usr/sbin/usbmuxd
 
 cp -av ../inittab rootfs/etc
 cp -v ../scripts/* rootfs/usr/bin
-chmod -v 755 rootfs/usr/local/bin/*
+chmod -R -v 755 rootfs/usr/local/bin
 ln -sv sbin/init rootfs/init
 ln -sv ../../etc/terminfo rootfs/usr/share/terminfo # fix ncurses
 
@@ -162,4 +181,4 @@ find . | cpio -oH newc | xz -C crc32 --x86 -vz9eT$(nproc --all) > ../iso/boot/in
 popd
 
 # ISO creation
-grub-mkrescue -o "palen1x-$ARCH-$VERSION.iso" iso --compress=xz
+grub-mkrescue -o "palen1x-$ARCH-$VERSION-palera1n-$download_version.iso" iso --compress=xz
