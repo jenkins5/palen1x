@@ -144,7 +144,7 @@ echo "PATH=$PATH:$HOME/.local/bin" > rootfs/root/.bashrc # d
 echo "export PALEN1X_VERSION='$VERSION'" > rootfs/root/.bashrc
 echo '/usr/bin/palen1x_menu' >> rootfs/root/.bashrc
 echo "RootHide" > rootfs/usr/bin/.jbtype
-echo "-l -k /roothide/Pongo.bin -K /roothide/checkra1n-kpf-pongo -o /roothide/palehide.tc" > rootfs/usr/bin/.args
+echo "-l -k /roothide/Pongo.bin -K /roothide/checkra1n-kpf-pongo -o /roothide/jbinit" > rootfs/usr/bin/.args
 
 # Unmount fs
 umount -v rootfs/{dev,sys,proc}

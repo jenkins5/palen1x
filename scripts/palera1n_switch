@@ -21,7 +21,7 @@ case "$jbtype" in
   "RootHide")
     echo "RootHide selected"
     echo "RootHide" > /usr/bin/.jbtype
-     echo "-l -k /roothide/Pongo.bin -K /roothide/checkra1n-kpf-pongo -o /roothide/palehide.tc" > /usr/bin/.args
+     echo "-l -k /roothide/Pongo.bin -K /roothide/checkra1n-kpf-pongo -o /roothide/jbinit" > /usr/bin/.args
     /usr/bin/palera1n_menu
     ;;
   "Rootful")

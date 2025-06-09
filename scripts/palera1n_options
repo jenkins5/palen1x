@@ -60,7 +60,7 @@ elif [ "$jbtype" = "RootHide" ]; then
               "3") output3="-v";;
           esac
       done
-      echo "-l -k /roothide/Pongo.bin -K /roothide/checkra1n-kpf-pongo -o /roothide/palehide.tc $output1 $output2 $output3" > /usr/bin/.args
+      echo "-l -k /roothide/Pongo.bin -K /roothide/checkra1n-kpf-pongo -o /roothide/jbinit $output1 $output2 $output3" > /usr/bin/.args
       /usr/bin/palera1n_menu
   else
       echo "Cancelled"
