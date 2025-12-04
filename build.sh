@@ -12,9 +12,9 @@ set -e
     exit 1
 }
 
-GREEN="$(tput setaf 2)"
-BLUE="$(tput setaf 6)"
-NORMAL="$(tput sgr0)"
+GREEN=""
+BLUE=""
+NORMAL=""
 
 while [ -z "$VERSION" ]; do
     printf 'Version: '
