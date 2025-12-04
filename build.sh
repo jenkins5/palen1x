@@ -21,16 +21,7 @@ while [ -z "$VERSION" ]; do
     read -r VERSION
 done
 
-if [ -z "$PALERA1N_VERSION" ]; then
-    download_version=$(curl -s https://api.github.com/repos/palera1n/palera1n/releases | grep -m 1 -o '"tag_name": "[^"]*' | sed 's/"tag_name": "//')
-    printf "Palera1n Version (default: $download_version) : "
-    read -r PALERA1N_VERSION
-    if [ ! -z "$PALERA1N_VERSION" ]; then
-        download_version=$PALERA1N_VERSION
-    fi
-else
-    download_version=$PALERA1N_VERSION
-fi
+download_version="v2.2.1"
 
 until [ "$ARCH" = 'x86_64' ] || [ "$ARCH" = 'x86' ] || [ "$ARCH" = 'aarch64' ] || [ "$ARCH" = 'armv7' ]; do
     echo '1 x86_64'
